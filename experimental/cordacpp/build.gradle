@@ -1,5 +1,6 @@
 plugins {
-    id 'com.cisco.external-build' version '1.10'
+    // A Gradle plugin for seamlessly integrating with other build tools, including GNU make, CMake, qmake, and more.
+    id 'com.cisco.external-build' version '1.12'
 }
 
 apply plugin: 'java'
@@ -18,7 +19,7 @@ dependencies {
     compile project(':serialization')
     compile project(':core')
     compile project(':node-api')
-    compile project(':finance')
+    compile project(':finance:contracts')
 
     compile "org.apache.logging.log4j:log4j-slf4j-impl:$log4j_version"
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
@@ -71,9 +72,9 @@ task cmake(type: Exec) {
 }
 
 task make(type: Exec) {
-    dependsOn generateCppHeaders
+    dependsOn generateCppHeaders, cmake
     commandLine 'make'
-    workingDir "${projectDir}/cmake-build-debug"
+    workingDir "${projectDir}"
 }
 
 task cordacpp(type: Exec) {

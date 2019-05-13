@@ -18,6 +18,7 @@ import net.corda.serialization.internal.SerializationFactoryImpl
 import net.corda.serialization.internal.amqp.AbstractAMQPSerializationScheme
 import net.corda.serialization.internal.amqp.SerializerFactory
 import net.corda.serialization.internal.amqp.amqpMagic
+import net.corda.serialization.internal.amqp.hasCordaSerializable
 import net.corda.serialization.internal.model.LocalPropertyInformation
 import net.corda.serialization.internal.model.LocalTypeInformation
 import net.corda.serialization.internal.model.PropertyName
@@ -115,14 +116,13 @@ class GenerateCPPHeaders : CordaCliWrapper("generate-cpp-headers", "Generate sou
                     .use { scanResult ->
                         val classesWithAnnotation = scanResult.getClassesWithAnnotation("net.corda.core.serialization.CordaSerializable")
 
-                        val directlyAnnotated = classesWithAnnotation.names.map {
+                        val directlyAnnotated = classesWithAnnotation.names
+                        val implementingAnnotatedInterface = classesWithAnnotation.interfaces.flatMap { scanResult.getClassesImplementing(it.name) }.map { it.name }
+                        (directlyAnnotated + implementingAnnotatedInterface).map {
                             println("Loading $it")
                             Class.forName(it)
                         }
-
-                        val implementingAnnotatedInterface = classesWithAnnotation.interfaces.flatMap { scanResult.getClassesImplementing(it.name) }.map { Class.forName(it.name) }
-                        directlyAnnotated + implementingAnnotatedInterface
-                    } + listOf(Cash.State::class.java)
+                    } + listOf(Cash.State::class.java)  // TODO: Remove the special case for cash, pass in on the command lines instead.
 
             val outPath = Paths.get(outputDirectory)
             Files.createDirectories(outPath)
@@ -331,7 +331,7 @@ class GenerateCPPHeaders : CordaCliWrapper("generate-cpp-headers", "Generate sou
             return result
         }
 
-    private val Type.isCordaSerializable: Boolean get() = baseClass.isAnnotationPresent(CordaSerializable::class.java)
+    private val Type.isCordaSerializable: Boolean get() = hasCordaSerializable(baseClass)
 
     private fun generateClassFor(type: Type, seenSoFar: Set<String>): GenResult? {
         val fieldDeclarations = mutableListOf<String>()
@@ -368,7 +368,7 @@ class GenerateCPPHeaders : CordaCliWrapper("generate-cpp-headers", "Generate sou
             is LocalTypeInformation.AnInterface -> emptyMap()   // Don't care about generating interfaces at the moment.
             is LocalTypeInformation.Singleton -> emptyMap()
             else -> {
-                println("Need to write code for custom serializer '$type' / $descriptorSymbol")
+                println("Need to a custom serializer for '$type' ($descriptorSymbol) because it's a ${typeInformation.javaClass.simpleName} ")
                 return null
             }
         }
