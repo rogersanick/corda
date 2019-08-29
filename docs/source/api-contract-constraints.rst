@@ -121,14 +121,10 @@ This is expanded upon in :ref:`contract_constraints_in_transactions`.
 .. note:: Signature Constraints are used by default except when a new transaction contains an input state with a Hash Constraint. In this
           situation the Hash Constraint is used.
 
-.. _app_versioning_with_signature_constraints:
-
 App versioning with Signature Constraints
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Signed apps require a version number to be provided, see :doc:`versioning`. You can't import two different
-JARs that claim to be the same version, provide the same contract classes and which are both signed. At runtime
-the node will throw a ``DuplicateContractClassException`` exception if this condition is violated.
+Signed apps require a version number to be provided, see :doc:`versioning`.
 
 Hash Constraints
 ----------------
@@ -333,7 +329,7 @@ If an attachment constraint cannot be resolved, a ``MissingContractAttachments``
 ``MissingContractAttachments`` exceptions:
 
 Not setting CorDapp packages in tests
-*************************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You are running a test and have not specified the CorDapp packages to scan.
 When using ``MockNetwork`` ensure you have provided a package containing the contract class in ``MockNetworkParameters``. See :doc:`api-testing`.
@@ -372,14 +368,14 @@ Example of creation of two Cordapps with Finance App Flows and Finance App Contr
         );
 
 Starting a node missing CorDapp(s)
-**********************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 When running the Corda node ensure all CordDapp JARs are placed in ``cordapps`` directory of each node.
 By default Gradle Cordform task ``deployNodes`` copies all JARs if CorDapps to deploy are specified.
 See :doc:`generating-a-node` for detailed instructions.
 
 Wrong fully-qualified contract name
-***********************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You are specifying the fully-qualified name of the contract incorrectly. For example, you've defined ``MyContract`` in
 the package ``com.mycompany.myapp.contracts``, but the fully-qualified contract name you pass to the

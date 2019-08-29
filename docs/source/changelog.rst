@@ -4,18 +4,41 @@ Changelog
 Here's a summary of what's changed in each Corda release. For guidance on how to upgrade code from the previous
 release, see :doc:`app-upgrade-notes`.
 
-.. _changelog_v5.0:
+Unreleased
+----------
 
-Version 5.0
------------
+* Introduced a new low level flow diagnostics tool: checkpoint agent (that can be used standalone or in conjunction with the ``dumpCheckpoints`` shell command).
+  See :doc:`checkpoint-tooling` for more information.
+
+* The MockNet now supports setting a custom Notary class name, as was already supported by normal node config. See :doc:`tutorial-custom-notary`.
+
+* Introduced a new ``Destination`` abstraction for communicating with non-Party destinations using the new ``FlowLogic.initateFlow(Destination)``
+  method. ``Party`` and ``AnonymousParty`` have been retrofitted to implement ``Destination``. Initiating a flow to an ``AnonymousParty``
+  means resolving to the well-known identity ``Party`` and then communicating with that.
 
 * Removed ``finance-workflows`` dependency on jackson library.  The functions that used jackson (e.g. ``FinanceJSONSupport``) have been moved
   into IRS Demo.
+* The introductory and technical white papers have been refreshed. They have new content and a clearer organisation.
 
-.. _changelog_v4.2:
+* Information about checkpointed flows can be retrieved from the shell. Calling ``dumpCheckpoints`` will create a zip file inside the node's
+  ``log`` directory. This zip will contain a JSON representation of each checkpointed flow. This information can then be used to determine the
+  state of stuck flows or flows that experienced internal errors and were kept in the node for manual intervention.
 
-Version 4.2
------------
+* It is now possible to re-record transactions if a node wishes to record as an observer a transaction it has participated in. If this is
+  done, then the node may record new output states that are not relevant to the node.
+
+  .. warning:: Nodes may re-record transactions if they have previously recorded them as a participant and wish to record them as an observer.
+     However, the node cannot resolve the forward chain of transactions if this is done. This means that if you wish to re-record a chain of
+     transactions and get the new output states to be correctly marked as consumed, the full chain must be sent to the node *in order*.
+
+* Added ``nodeDiagnosticInfo`` to the RPC API. The new RPC is also available as the ``run nodeDiagnosticInfo`` command executable from
+  the Corda shell. It retrieves version information about the Corda platform and the CorDapps installed on the node.
+
+* ``CordaRPCClient.start`` has a new ``gracefulReconnect`` parameter. When ``true`` (the default is ``false``) it will cause the RPC client
+  to try to automatically reconnect to the node on disconnect. Further any ``Observable`` s previously created will continue to vend new
+  events on reconnect.
+
+  .. note:: This is only best-effort and there are no guarantees of reliability.
 
 * Contract attachments are now automatically whitelisted by the node if another contract attachment is present with the same contract classes,
   signed by the same public keys, and uploaded by a trusted uploader. This allows the node to resolve transactions that use earlier versions
@@ -24,6 +47,16 @@ Version 4.2
 
 * :doc:`design/data-model-upgrades/package-namespace-ownership` configurations can be now be set as described in
   :ref:`node_package_namespace_ownership`, when using the Cordformation plugin version 4.0.43.
+
+* Wildcards can now be used when specifying RPC permissions, for example ``StartFlow.foo.bar.*`` will allow users to start any flow in the
+  ``foo.bar`` package. See :ref:`rpcUsers <corda_configuration_file_rpc_users>` for more information.
+
+.. _changelog_v4.1:
+
+Version 4.1
+-----------
+
+* Fix a bug in Corda 4.0 that combined commands in ``TransactionBuilder`` if they only differed by the signers list.  The behaviour is now consistent with prior Corda releases.
 
 * Disabled the default loading of ``hibernate-validator`` as a plugin by hibernate when a CorDapp depends on it. This change will in turn fix the
   (https://github.com/corda/corda/issues/4444) issue, because nodes will no longer need to add ``hibernate-validator`` to the ``\libs`` folder.
